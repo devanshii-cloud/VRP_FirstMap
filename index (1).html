@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script>
+        L_NO_TOUCH = false;
+        L_DISABLE_3D = false;
+    </script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: grid;
+            grid-template-columns: 30% 70%;
+            height: 100vh;
+        }
+
+        #project-details {
+            background-color: #f0f0f0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #map {
+            /* Ensure map container takes full grid area */
+            height: 100%;
+            width: 100%;
+        }
+
+        .leaflet-container {
+            font-size: 1rem;
+            /* Force Leaflet to fill its container */
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css" />
+    <meta name="viewport" content="width=device-width,
+            initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</head>
+
+<body>
+    <div id="project-details">
+        <h2>Project Summary</h2>
+        <p>To build an optimized vehicle routing system that efficiently schedules stops across multiple locations in Vancouver using real-world address data. The project simulates a real
+            logistics scenario, such as last-mile delivery, field service dispatch, or tourist route planning, by minimizing travel time and distance while visualizing the best possible route.</p>
+        <h2>Tools & Techniques Used</h2>
+        <ul>
+            <li>Python: Core programming for data handling, API interaction, and logic</li>
+            <li>Pandas: Data storage and manipulation</li>
+            <li>Geopy + Nominatim: Address geocoding (converting addresses to latitude/longitude)</li>
+            <li>OpenRouteService API: Route optimization and matrix calculation</li>
+            <li>Folium: Interactive map visualization</li>
+            <li>JSON/Requests: API request handling and data parsing</li>
+        </ul>
+        <h2>Key Highlights</h2>
+        <ul>
+            <li>Real Address Integration: Project uses real, recognizable Vancouver locations like BC Place and Stanley Park to make routing meaningful and relatable.</li>
+            <li>Geocoding with Error Handling: Converts multiple addresses to geographical coordinates using geopy with rate limiting to prevent request blocking.</li>
+            <li>ORS Matrix API: Fetches time and distance matrix between points to evaluate routing efficiency.</li>
+            <li>Optimization Logic: Sends job and vehicle configurations to the ORS Optimization API, simulating real-world delivery logistics.</li>
+            <li>Enhanced Visualization:
+                <ul>
+                    <li>Interactive route map using folium</li>
+                    <li>Custom tooltips, popups, and color-coded markers for source, destination, and intermediate stops</li>
+                    <li>Dashed polyline for better route clarity</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="folium-map" id="map_198ced26bd959447f14dd9da81ef32db"></div>
+</body>
+
+<script>
+    var map_198ced26bd959447f14dd9da81ef32db = L.map(
+        "map_198ced26bd959447f14dd9da81ef32db", {
+            center: [49.284632125, -123.12763352549443],
+            crs: L.CRS.EPSG3857,
+            ... {
+                "zoom": 14,
+                "zoomControl": true,
+                "preferCanvas": false,
+            }
+        }
+    );
+
+    var tile_layer_106b862d606bea1809732030b14b415d = L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+            "minZoom": 0,
+            "maxZoom": 20,
+            "maxNativeZoom": 20,
+            "noWrap": false,
+            "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+            "subdomains": "abcd",
+            "detectRetina": false,
+            "tms": false,
+            "opacity": 1,
+        }
+    );
+    tile_layer_106b862d606bea1809732030b14b415d.addTo(map_198ced26bd959447f14dd9da81ef32db);
+
+    var circle_marker_f6a39ada7a9dfddd37580f7fb865bb34 = L.circleMarker(
+        [49.27345364999999, -123.10367393476372], {
+            "bubblingMouseEvents": true,
+            "color": "red",
+            "dashArray": null,
+            "dashOffset": null,
+            "fill": true,
+            "fillColor": "red",
+            "fillOpacity": 0.7,
+            "fillRule": "evenodd",
+            "lineCap": "round",
+            "lineJoin": "round",
+            "opacity": 1.0,
+            "radius": 6,
+            "stroke": true,
+            "weight": 3
+        }
+    ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+    var popup_8c2578f6e641970eeb3b91f9a5db2997 = L.popup({
+        "maxWidth": 300,
+    });
+
+    var html_5e85bd56811706d028d83f34bd46ae3d = $(
+        `<div id="html_5e85bd56811706d028d83f34bd46ae3d" style="width: 100.0%; height: 100.0%;"><b>You are here!</b><br>Science World<br><b>Latitude:</b> -123.10367393476372<br><b>Longitude:</b> 49.27345364999999</div>`
+    )[0];
+    popup_8c2578f6e641970eeb3b91f9a5db2997.setContent(html_5e85bd56811706d028d83f34bd46ae3d);
+
+    circle_marker_f6a39ada7a9dfddd37580f7fb865bb34.bindPopup(popup_8c2578f6e641970eeb3b91f9a5db2997);
+    circle_marker_f6a39ada7a9dfddd37580f7fb865bb34.bindTooltip(
+        `<div>
+         
+    <div style="background-color: red; 
+                color: white; 
+                font-size: 14px; 
+    
+         padding: 8px;
+                border-radius: 8px;
+                text-align: center;">
+        You are here!<br>Science World
+    </div>
+
+             </div>`, {
+            "sticky": true,
+        }
+    );
+    var circle_marker_6b827091f254828482117a9467321a2c = L.circleMarker(
+        [49.2766905, -123.1120061895052], {
+            "bubblingMouseEvents": true,
+            "color": "blue",
+            "dashArray": null,
+            "dashOffset": null,
+            "fill": true,
+            "fillColor": "blue",
+            "fillOpacity": 0.7,
+            "fillRule": "evenodd",
+            "lineCap": "round",
+            "lineJoin": "round",
+            "opacity": 1.0,
+            "radius": 6,
+            "stroke": true,
+            "weight": 3
+        }
+    ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+    var popup_d600a983d68c3fadcbad38e743d7249e = L.popup({
+        "maxWidth": 300,
+    });
+
+    var html_33bd6a952460804c26446dcdb887446a = $(
+        `<div id="html_33bd6a952460804c26446dcdb887446a" style="width: 100.0%; height: 100.0%;"><b>Location 1</b><br>BC Place<br><b>Latitude:</b> -123.1120061895052<br><b>Longitude:</b> 49.2766905</div>`
+    )[0];
+    popup_d600a983d68c3fadcbad38e743d7249e.setContent(html_33bd6a952460804c26446dcdb887446a);
+
+    circle_marker_6b827091f254828482117a9467321a2c.bindPopup(popup_d600a983d68c3fadcbad38e743d7249e);
+    circle_marker_6b827091f254828482117a9467321a2c.bindTooltip(
+        `<div>
+         
+    <div style="background-color: blue; 
+                color: white; 
+                font-size: 14px; 
+    
+         padding: 8px;
+                border-radius: 8px;
+                text-align: center;">
+        Location 1<br>BC Place
+    </div>
+
+             </div>`, {
+            "sticky": true,
+        }
+    );
+    var circle_marker_04d847861b3eedbc9a9840de823c6e02 = L.circleMarker(
+        [49.2770033, -123.13549769460369], {
+            "bubblingMouseEvents": true,
+            "color": "blue",
+            "dashArray": null,
+            "dashOffset": null,
+            "fill": true,
+            "fillColor": "blue",
+            "fillOpacity": 0.7,
+            "fillRule": "evenodd",
+            "lineCap": "round",
+            "lineJoin": "round",
+            "opacity": 1.0,
+            "radius": 6,
+            "stroke": true,
+            "weight": 3
+        }
+    ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+    var popup_9646a8d726ca6d6365b819c10c858dc1 = L.popup({
+        "maxWidth": 300,
+    });
+
+    var html_f6e31dc8d88123d70be5fed873d5ca31 = $(
+        `<div id="html_f6e31dc8d88123d70be5fed873d5ca31" style="width: 100.0%; height: 100.0%;"><b>Location 2</b><br>Vancouver Aquatic Centre<br><b>Latitude:</b> -123.13549769460369<br><b>Longitude:</b> 49.2770033</div>`
+    )[0];
+    popup_9646a8d726ca6d6365b819c10c858dc1.setContent(html_f6e31dc8d88123d70be5fed873d5ca31);
+
+    circle_marker_04d847861b3eedbc9a9840de823c6e02.bindPopup(popup_9646a8d726ca6d6365b819c10c858dc1);
+    circle_marker_04d847861b3eedbc9a9840de823c6e02.bindTooltip(
+        `<div>
+         
+    <div style="background-color: blue; 
+                color: white; 
+                font-size: 14px; 
+    
+         padding: 8px;
+                border-radius: 8px;
+                text-align: center;">
+        Location 2<br>Vancouver Aquatic Centre
+    </div>
+
+             </div>`, {
+            "sticky": true,
+        }
+    );
+    var circle_marker_140b6f923f03c1e8a3398e9755e5486d = L.circleMarker(
+        [49.288583, -123.140079], {
+            "bubblingMouseEvents": true,
+            "color": "blue",
+            "dashArray": null,
+            "dashOffset": null,
+            "fill": true,
+            "fillColor": "blue",
+            "fillOpacity": 0.7,
+            "fillRule": "evenodd",
+            "lineCap": "round",
+            "lineJoin": "round",
+            "opacity": 1.0,
+            "radius": 6,
+            "stroke": true,
+            "weight": 3
+        }
+    ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+    var popup_e4ccc758fce8e2124c094f5724e974ee = L.popup({
+        "maxWidth": 300,
+    });
+
+    var html_005195899e32bb2b5f0e6b3d181df61c = $(
+        `<div id="html_005195899e32bb2b5f0e6b3d181df61c" style="width: 100.0%; height: 100.0%;"><b>Location 3</b><br>Bombay Kitchen & Bar<br><b>Latitude:</b> -123.140079<br><b>Longitude:</b> 49.288583</div>`
+    )[0];
+    popup_e4ccc758fce8e2124c094f5724e974ee.setContent(html_005195899e32bb2b5f0e6b3d181df61c);
+
+    circle_marker_140b6f923f03c1e8a3398e9755e5486d.bindPopup(popup_e4ccc758fce8e2124c094f5724e974ee);
+    circle_marker_140b6f923f03c1e8a3398e9755e5486d.bindTooltip(
+        `<div>
+         
+    <div style="background-color: blue; 
+                color: white; 
+                font-size: 14px; 
+    
+         padding: 8px;
+                border-radius: 8px;
+                text-align: center;">
+        Location 3<br>Bombay Kitchen & Bar
+    </div>
+
+             </div>`, {
+            "sticky": true,
+        }
+    );
+    var circle_marker_c5d2891e4690d5531ad0434100f32913 = L.circleMarker(
+        [49.2932426, -123.14104604924844], {
+            "bubblingMouseEvents": true,
+            "color": "blue",
+            "dashArray": null,
+            "dashOffset": null,
+            "fill": true,
+            "fillColor": "blue",
+            "fillOpacity": 0.7,
+            "fillRule": "evenodd",
+            "lineCap": "round",
+            "lineJoin": "round",
+            "opacity": 1.0,
+            "radius": 6,
+            "stroke": true,
+            "weight": 3
+        }
+    ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+    var popup_770498a6320741dc5b1d7035232764c3 = L.popup({
+        "maxWidth": 300,
+    });
+
+    var html_831599a249b85213c2ba8b9d498929e7 = $(
+        `<div id="html_831599a249b85213c2ba8b9d498929e7" style="width: 100.0%; height: 100.0%;"><b>Location 4</b><br>Stanley Park Tennis Court<br><b>Latitude:</b> -123.14104604924844<br><b>Longitude:</b> 49.2932426</div>`
+    )[0];
+    popup_770498a6320741dc5b1d7035232764c3.setContent(html_831599a249b85213c2ba8b9d498929e7);
+
+    circle_marker_c5d2891e4690d5531ad0434100f32913.bindPopup(popup_770498a6320741dc5b1d7035232764c3);
+    circle_marker_c5d2891e4690d5531ad0434100f32913.bindTooltip(
+        `<div>
+         
+    <div style="background-color: blue; 
+                color: white; 
+                font-size: 14px; 
+    
+         padding: 8px;
+                border-radius: 8px;
+                text-align: center;">
+        Location 4<br>Stanley Park Tennis Court
+    </div>
+
+             </div>`, {
+            "sticky": true,
+        }
+    );
+    var circle_marker_785f853cf0effcddec3b92b17b8407c4 = L.circleMarker(
+        [49.2988197, -123.13349828484552], {
+            "bubblingMouseEvents": true,
+            "color": "green",
+            "dashArray": null,
+            "dashOffset": null,
+            "fill": true,
+            "fillColor": "green",
+            "fillOpacity": 0.7,
+            "fillRule": "evenodd",
+            "lineCap": "round",
+            "lineJoin": "round",
+            "opacity": 1.0,
+            "radius": 6,
+            "stroke": true,
+            "weight": 3
+        }
+    ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+    var popup_2f2de26743a76d7906fd89342ab608c8 = L.popup({
+        "maxWidth": 300,
+    });
+
+    var html_b70f4d194b0708ec682e834cd72fc29e = $(
+        `<div id="html_b70f4d194b0708ec682e834cd72fc29e" style="width: 100.0%; height: 100.0%;"><b>Congrats, reached the destination!</b><br>Stanley Park Rose Garden<br><b>Latitude:</b> -123.13349828484552<br><b>Longitude:</b> 49.2988197</div>`
+    )[0];
+    popup_2f2de26743a76d7906fd89342ab608c8.setContent(html_b70f4d194b0708ec682e834cd72fc29e);
+
+    circle_marker_785f853cf0effcddec3b92b17b8407c4.bindPopup(popup_2f2de26743a76d7906fd89342ab608c8);
+    circle_marker_785f853cf0effcddec3b92b17b8407c4.bindTooltip(
+        `<div>
+         
+    <div style="background-color: green; 
+                color: white; 
+                font-size: 14px; 
+    
+         padding: 8px;
+                border-radius: 8px;
+                text-align: center;">
+        Congrats, reached the destination!<br>Stanley Park Rose Garden
+    </div>
+
+           </div>`, {
+            "sticky": true,
+        }
+    );
+    var poly_line_06167839c6d854a8fa0ea93099460234 = L.polyline(
+        [
+            [49.27341, -123.10206],
+            [49.2735, -123.10205],
+            [49.27387, -123.10208],
+            [49.27496, -123.10227],
+            [49.27497, -123.10214],
+            [49.27493, -123.10201],
+            [49.27491, -123.10186],
+            [49.27501, -123.10188],
+            [49.27607, -123.10212],
+            [49.27654, -123.10227],
+            [49.27659, -123.10231],
+            [49.27691, -123.10256],
+            [49.27711, -123.10276],
+            [49.27734, -123.1031],
+            [49.2775, -123.10342],
+            [49.27753, -123.10348],
+            [49.27764, -123.10383],
+            [49.27769, -123.10402],
+            [49.27797, -123.10584],
+            [49.27805, -123.10615],
+            [49.27821, -123.10667],
+            [49.27839, -123.10707],
+            [49.27856, -123.10738],
+            [49.27866, -123.10764],
+            [49.27871, -123.10792],
+            [49.27873, -123.10812],
+            [49.27872, -123.10833],
+            [49.27869, -123.10859],
+            [49.27859, -123.10894],
+            [49.278, -123.11012],
+            [49.2779, -123.11039],
+            [49.27784, -123.11085],
+            [49.27784, -123.11118],
+            [49.27787, -123.11152],
+            [49.27787, -123.11176],
+            [49.27782, -123.11209],
+            [49.27765, -123.11263],
+            [49.27748, -123.11296],
+            [49.27732, -123.11327],
+            [49.27714, -123.11355],
+            [49.27696,-123.11373],
+        [49.27663, -123.11387],
+        [49.2765, -123.11393],
+        [49.27637, -123.11401],
+        [49.27629, -123.11408],
+        [49.27578, -123.11476],
+        [49.27536, -123.11528],
+        [49.27487, -123.11596],
+        [49.27467, -123.11624],
+        [49.27456, -123.11647],
+        [49.27451, -123.11664],
+        [49.27447, -123.11676],
+        [49.27442, -123.11707],
+        [49.27443, -123.1175],
+        [49.27444, -123.11759],
+        [49.27447, -123.11781],
+        [49.27457, -123.11854],
+        [49.27459, -123.11913],
+        [49.27457, -123.11931],
+        [49.27452, -123.11968],
+        [49.27446, -123.11999],
+        [49.27409, -123.12147],
+        [49.27367, -123.12301],
+        [49.27348, -123.12373],
+        [49.27382, -123.12428],
+        [49.27391, -123.12442],
+        [49.2742, -123.12486],
+        [49.27449, -123.12531],
+        [49.27455, -123.12541],
+        [49.27483, -123.12583],
+        [49.27515, -123.12632],
+        [49.27546, -123.12682],
+        [49.27575, -123.12729],
+        [49.27578, -123.12732],
+        [49.27609, -123.12781],
+        [49.27644, -123.12835],
+        [49.27674, -123.1288],
+        [49.27656, -123.12909],
+        [49.27654, -123.1292],
+        [49.27641, -123.12944],
+        [49.27599, -123.13007],
+        [49.27588, -123.13015],
+        [49.27582, -123.13019],
+        [49.27571, -123.13034],
+        [49.27563, -123.13047], [49.27501, -123.13138], [49.27473, -123.13183], [49.27533, -123.13276], [49.27537, -123.13282], [49.27573, -123.13336], [49.27578, -123.13344], [49.27601, -123.13378], [49.27617, -123.13404], [49.27648, -123.13434], [49.27662, -123.13447], [49.27694, -123.13479], [49.2772, -123.13503], [49.27729, -123.13512], [49.2776, -123.13543], [49.27793, -123.13494], [49.278, -123.13483], [49.27828, -123.13439], [49.27968, -123.13655], [49.2807, -123.13813], [49.28159, -123.13949], [49.28238, -123.14069], [49.28294, -123.14156], [49.28314, -123.14181], [49.28338, -123.14205], [49.28418, -123.14258], [49.28452, -123.14275], [49.28464, -123.14277], [49.28484, -123.14277], [49.28623, -123.14247], [49.28662, -123.14239], [49.28689, -123.14229], [49.28702, -123.14214], [49.2872, -123.14191], [49.28726, -123.14183], [49.28758, -123.14135], [49.28761, -123.14129], [49.28796, -123.14077], [49.28832, -123.14023], [49.2885, -123.13995], [49.28862, -123.13977], [49.28867, -123.1397], [49.28872, -123.13963], [49.28903, -123.13916], [49.28937, -123.13864], [49.28973, -123.1381], [49.29008, -123.13757], [49.29043, -123.13704], [49.29145, -123.1386], [49.29234, -123.13998], [49.29303, -123.14104], [49.29307, -123.14107], [49.29309, -123.14098], [49.29336, -123.1394], [49.29331, -123.13937], [49.29304, -123.13894], [49.29215, -123.13754], [49.2925, -123.13702], [49.29285, -123.13649], [49.2932, -123.13594], [49.29345, -123.13556], [49.2935, -123.13546], [49.29356, -123.13524], [49.2937, -123.13545], [49.29388, -123.13573], [49.29398, -123.13576], [49.29405, -123.13585], [49.29414, -123.13592], [49.2944, -123.13629], [49.29454, -123.13648], [49.2947, -123.13661], [49.29489, -123.13667], [49.29511, -123.13665], [49.29523, -123.1366], [49.29591, -123.1362], [49.29611, -123.1361], [49.29633, -123.13605], [49.29646, -123.13605], [49.29668, -123.1361], [49.29707, -123.1362], [49.29723, -123.13618], [49.2973, -123.13613], [49.29736, -123.13604], [49.29738, -123.13597], [49.29743, -123.13591], [49.2975, -123.1359], [49.29774, -123.13585], [49.29783, -123.13589], [49.29804, -123.13585], [49.29936, -123.13579], [49.29935, -123.13526], [49.29929, -123.135], [49.29917, -123.13466], [49.29912, -123.13441], [49.29918, -123.13426], [49.2992, -123.13424]],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": "5, 5", "dashOffset": null, "fill": false, "fillColor": "red", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 3}
+            ).addTo(map_198ced26bd959447f14dd9da81ef32db);
+        
+    
+            tile_layer_106b862d606bea1809732030b14b415d.addTo(map_198ced26bd959447f14dd9da81ef32db);
+        
+</script>
+</html>
